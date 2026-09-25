@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hardware Repair Shop — Technician Ticket Center</title>
+<style>
+  #hrsCapstone {
+    --hrs-navy:#102a43;
+    --hrs-navy-2:#163b63;
+    --hrs-blue:#2463a7;
+    --hrs-blue-soft:#edf5ff;
+    --hrs-green:#19724a;
+    --hrs-green-soft:#eaf8f1;
+    --hrs-orange:#b45309;
+    --hrs-orange-soft:#fff5e8;
+    --hrs-red:#b42318;
+    --hrs-red-soft:#fff0ef;
+    --hrs-ink:#17202a;
+    --hrs-muted:#607084;
+    --hrs-line:#d9e2ec;
+    --hrs-panel:#f7f9fc;
+    --hrs-white:#ffffff;
+    --hrs-shadow:0 12px 32px rgba(16,42,67,.12);
+    width:min(1180px, calc(100% - 24px));
+    margin:20px auto;
+    color:var(--hrs-ink);
+    font-family:Arial, Helvetica, sans-serif;
+    line-height:1.45;
+    box-sizing:border-box;
+  }
+  #hrsCapstone *, #hrsCapstone *::before, #hrsCapstone *::after { box-sizing:border-box; }
+  #hrsCapstone button, #hrsCapstone select, #hrsCapstone textarea { font:inherit; }
+  #hrsCapstone button { cursor:pointer; }
+  #hrsCapstone .hrs-app {
+    background:var(--hrs-white);
+    border:1px solid var(--hrs-line);
+    border-radius:18px;
+    box-shadow:var(--hrs-shadow);
+    overflow:hidden;
+  }
+  #hrsCapstone .hrs-topbar {
+    background:linear-gradient(135deg,var(--hrs-navy),var(--hrs-navy-2));
+    color:#fff;
+    padding:20px 22px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:18px;
+    flex-wrap:wrap;
+  }
+  #hrsCapstone .hrs-brand { display:flex; gap:13px; align-items:center; min-width:0; }
+  #hrsCapstone .hrs-logo {
+    width:46px; height:46px; border:2px solid rgba(255,255,255,.72); border-radius:12px;
+    display:grid; place-items:center; font-weight:800; letter-spacing:.05em; flex:0 0 auto;
+    background:rgba(255,255,255,.08);
+  }
+  #hrsCapstone .hrs-brand h1 { margin:0; font-size:clamp(1.15rem,2.2vw,1.55rem); line-height:1.15; color:#ff8a00 !important; }
+  #hrsCapstone .hrs-brand p { margin:4px 0 0; color:#d9e8f7; font-size:.9rem; }
+  #hrsCapstone .hrs-top-actions { display:flex; gap:8px; flex-wrap:wrap; }
+  #hrsCapstone .hrs-btn {
+    border:1px solid transparent; border-radius:9px; padding:9px 13px; font-weight:700;
+    background:#fff; color:var(--hrs-navy); transition:.16s ease; min-height:40px;
+  }
+  #hrsCapstone .hrs-btn:hover { transform:translateY(-1px); }
+  #hrsCapstone .hrs-btn:focus-visible, #hrsCapstone select:focus-visible, #hrsCapstone textarea:focus-visible,
+  #hrsCapstone .hrs-ticket:focus-visible, #hrsCapstone .hrs-inspect-btn:focus-visible {
+    outline:3px solid rgba(56,132,255,.35); outline-offset:2px;
+  }
+  #hrsCapstone .hrs-btn-secondary { background:transparent; color:#fff; border-color:rgba(255,255,255,.45); }
+  #hrsCapstone .hrs-btn-primary { background:var(--hrs-blue); color:#fff; }
+  #hrsCapstone .hrs-btn-success { background:var(--hrs-green); color:#fff; }
+  #hrsCapstone .hrs-btn-danger { background:#fff; color:var(--hrs-red); border-color:#f0b5b0; }
+  #hrsCapstone .hrs-btn[disabled] { opacity:.48; cursor:not-allowed; transform:none; }
+  #hrsCapstone .hrs-body { padding:22px; background:#fbfcfe; }
+  #hrsCapstone .hrs-intro {
+    display:grid; grid-template-columns:1.55fr .9fr; gap:18px; margin-bottom:18px;
+  }
+  #hrsCapstone .hrs-card {
+    background:#fff; border:1px solid var(--hrs-line); border-radius:14px; padding:18px;
+  }
+  #hrsCapstone h2, #hrsCapstone h3, #hrsCapstone h4 { color:var(--hrs-navy); }
+  #hrsCapstone h2 { margin:0 0 8px; font-size:1.25rem; }
+  #hrsCapstone h3 { margin:0 0 10px; font-size:1.02rem; }
+  #hrsCapstone h4 { margin:0 0 8px; font-size:.95rem; }
+  #hrsCapstone p { margin:0 0 10px; }
+  #hrsCapstone .hrs-muted { color:var(--hrs-muted); }
+  #hrsCapstone .hrs-status-grid {
+    display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;
+  }
+  #hrsCapstone .hrs-stat {
+    background:var(--hrs-panel); border:1px solid var(--hrs-line); border-radius:10px; padding:11px;
+  }
+  #hrsCapstone .hrs-stat-label { color:var(--hrs-muted); font-size:.75rem; text-transform:uppercase; letter-spacing:.06em; font-weight:700; }
+  #hrsCapstone .hrs-stat-value { margin-top:3px; font-weight:800; color:var(--hrs-navy); font-size:1rem; }
+  #hrsCapstone .hrs-progress-wrap { margin-top:12px; }
+  #hrsCapstone .hrs-progress-line { height:9px; background:#e8eef5; border-radius:999px; overflow:hidden; }
+  #hrsCapstone .hrs-progress-fill { height:100%; width:0%; background:linear-gradient(90deg,#2e6eb5,#29a06f); transition:width .3s ease; }
+  #hrsCapstone .hrs-progress-text { display:flex; justify-content:space-between; margin-top:5px; font-size:.78rem; color:var(--hrs-muted); }
+  #hrsCapstone .hrs-queue-title { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:8px 0 10px; }
+  #hrsCapstone .hrs-queue { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+  #hrsCapstone .hrs-ticket {
+    width:100%; text-align:left; border:1px solid var(--hrs-line); background:#fff; border-radius:12px; padding:14px;
+    display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:start; color:inherit;
+  }
+  #hrsCapstone .hrs-ticket:hover { border-color:#aac3df; box-shadow:0 5px 14px rgba(16,42,67,.07); }
+  #hrsCapstone .hrs-ticket-num {
+    width:34px; height:34px; display:grid; place-items:center; border-radius:9px;
+    background:var(--hrs-blue-soft); color:var(--hrs-blue); font-weight:800;
+  }
+  #hrsCapstone .hrs-ticket strong { display:block; color:var(--hrs-navy); margin-bottom:4px; }
+  #hrsCapstone .hrs-ticket small { color:var(--hrs-muted); display:block; }
+  #hrsCapstone .hrs-pill {
+    display:inline-flex; align-items:center; border-radius:999px; padding:4px 8px; font-size:.72rem; font-weight:800;
+    background:#eef2f6; color:#526274; white-space:nowrap;
+  }
+  #hrsCapstone .hrs-pill.open { background:var(--hrs-orange-soft); color:var(--hrs-orange); }
+  #hrsCapstone .hrs-pill.done { background:var(--hrs-green-soft); color:var(--hrs-green); }
+  #hrsCapstone .hrs-view { display:none; }
+  #hrsCapstone .hrs-view.active { display:block; }
+  #hrsCapstone .hrs-work-head {
+    display:flex; justify-content:space-between; gap:14px; align-items:flex-start; margin-bottom:14px;
+  }
+  #hrsCapstone .hrs-kicker { font-size:.78rem; color:var(--hrs-blue); text-transform:uppercase; font-weight:800; letter-spacing:.08em; margin-bottom:4px; }
+  #hrsCapstone .hrs-problem {
+    border-left:4px solid var(--hrs-orange); background:var(--hrs-orange-soft); border-radius:0 10px 10px 0; padding:13px 14px; margin:12px 0 16px;
+  }
+  #hrsCapstone .hrs-work-grid { display:grid; grid-template-columns:1.2fr .8fr; gap:16px; align-items:start; }
+  #hrsCapstone .hrs-section { margin-bottom:14px; }
+  #hrsCapstone .hrs-section-title { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; }
+  #hrsCapstone .hrs-step {
+    display:inline-grid; place-items:center; width:25px; height:25px; border-radius:50%; background:var(--hrs-navy); color:#fff; font-size:.78rem; font-weight:800; margin-right:7px;
+  }
+  #hrsCapstone .hrs-question-list { display:grid !important; grid-template-columns:1fr !important; gap:8px !important; width:100% !important; }
+  #hrsCapstone label.hrs-choice {
+    border:1px solid var(--hrs-line) !important;
+    border-radius:9px !important;
+    padding:11px 13px !important;
+    display:grid !important;
+    grid-template-columns:22px minmax(0,1fr) !important;
+    column-gap:10px !important;
+    align-items:start !important;
+    justify-content:start !important;
+    width:100% !important;
+    min-height:0 !important;
+    background:#fff !important;
+    text-align:left !important;
+    margin:0 !important;
+  }
+  #hrsCapstone label.hrs-choice:hover {
+    border-color:#9fb9d4 !important;
+    background:#f8fbff !important;
+  }
+  #hrsCapstone label.hrs-choice input[type="radio"] {
+    width:18px !important;
+    height:18px !important;
+    min-width:18px !important;
+    margin:2px 0 0 0 !important;
+    padding:0 !important;
+    justify-self:start !important;
+    align-self:start !important;
+  }
+  #hrsCapstone label.hrs-choice > span {
+    display:block !important;
+    width:auto !important;
+    min-width:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+    text-align:left !important;
+    line-height:1.4 !important;
+    color:var(--hrs-ink) !important;
+    white-space:normal !important;
+  }
+  #hrsCapstone .hrs-feedback { margin-top:8px; padding:9px 11px; border-radius:9px; font-size:.88rem; display:none; }
+  #hrsCapstone .hrs-feedback.show { display:block; }
+  #hrsCapstone .hrs-feedback.good { background:var(--hrs-green-soft); color:#135c3c; border:1px solid #bfe5d1; }
+  #hrsCapstone .hrs-feedback.warn { background:var(--hrs-orange-soft); color:#8f4506; border:1px solid #f3d0a7; }
+  #hrsCapstone .hrs-inspection-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+  #hrsCapstone .hrs-inspect-btn {
+    border:1px solid var(--hrs-line); background:#fff; border-radius:10px; padding:10px; text-align:left; color:inherit; min-height:80px;
+  }
+  #hrsCapstone .hrs-inspect-btn:hover { border-color:#a9bdd4; }
+  #hrsCapstone .hrs-inspect-btn.seen { border-color:#8eb6df; background:#f8fbff; }
+  #hrsCapstone .hrs-inspect-icon {
+    display:inline-grid; place-items:center; min-width:34px; height:28px; padding:0 5px; border-radius:7px;
+    background:#edf3f9; color:var(--hrs-navy); font-weight:800; font-size:.72rem; margin-bottom:7px;
+  }
+  #hrsCapstone .hrs-inspect-label { display:block; font-weight:800; color:var(--hrs-navy); font-size:.88rem; }
+  #hrsCapstone .hrs-inspection-output { min-height:126px; border:1px dashed #b6c4d3; background:#f9fbfd; border-radius:10px; padding:12px; }
+  #hrsCapstone .hrs-inspection-output .tone-danger { color:var(--hrs-red); font-weight:800; }
+  #hrsCapstone .hrs-inspection-output .tone-warning { color:var(--hrs-orange); font-weight:800; }
+  #hrsCapstone .hrs-inspection-output .tone-good { color:var(--hrs-green); font-weight:800; }
+  #hrsCapstone .hrs-form-row { margin-bottom:11px; }
+  #hrsCapstone label.hrs-label { display:block; font-size:.84rem; font-weight:800; color:var(--hrs-navy); margin-bottom:5px; }
+  #hrsCapstone select, #hrsCapstone textarea {
+    width:100%; border:1px solid #bfcbd8; border-radius:9px; background:#fff; color:var(--hrs-ink); padding:9px 10px;
+  }
+  #hrsCapstone textarea { resize:vertical; min-height:76px; }
+  #hrsCapstone .hrs-side-note { font-size:.8rem; color:var(--hrs-muted); margin-top:5px; }
+  #hrsCapstone .hrs-actions { display:flex; gap:8px; flex-wrap:wrap; }
+  #hrsCapstone .hrs-hints { margin-top:9px; display:grid; gap:6px; }
+  #hrsCapstone .hrs-hint {
+    background:var(--hrs-blue-soft); color:#244f7d; border:1px solid #cbdff5; border-radius:9px; padding:9px 10px; font-size:.86rem;
+  }
+  #hrsCapstone .hrs-repair-status {
+    border:1px solid var(--hrs-line); border-radius:11px; padding:12px; margin-top:10px; background:#fff;
+  }
+  #hrsCapstone .hrs-repair-status.success { border-color:#b9ddc9; background:var(--hrs-green-soft); }
+  #hrsCapstone .hrs-checklist { margin:9px 0 0; padding:0; list-style:none; display:grid; gap:6px; }
+  #hrsCapstone .hrs-checklist li { display:flex; gap:8px; align-items:flex-start; font-size:.88rem; }
+  #hrsCapstone .hrs-check { color:var(--hrs-green); font-weight:900; }
+  #hrsCapstone .hrs-reflection { margin-top:14px; background:#f8fafc; border:1px solid var(--hrs-line); border-radius:12px; padding:13px; display:none; }
+  #hrsCapstone .hrs-reflection.show { display:block; }
+  #hrsCapstone .hrs-tech-note {
+    padding:9px 10px; border-radius:9px; background:#eef4fa; color:#43566c; font-size:.82rem; margin-bottom:10px;
+  }
+  #hrsCapstone .hrs-final-banner {
+    border:1px solid #b8ddc8; background:linear-gradient(135deg,#f2fbf6,#ffffff); border-radius:14px; padding:18px; margin-bottom:15px;
+  }
+  #hrsCapstone .hrs-report-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:14px 0; }
+  #hrsCapstone .hrs-report-stat { border:1px solid var(--hrs-line); border-radius:10px; padding:12px; background:#fff; }
+  #hrsCapstone .hrs-report-stat b { display:block; font-size:1.18rem; color:var(--hrs-navy); }
+  #hrsCapstone .hrs-skill-list { display:flex; flex-wrap:wrap; gap:7px; margin-top:8px; }
+  #hrsCapstone .hrs-skill { background:#edf3f9; color:#334d68; border-radius:999px; padding:6px 9px; font-size:.78rem; font-weight:700; }
+  #hrsCapstone .hrs-review { display:grid; gap:11px; margin-top:12px; }
+  #hrsCapstone details { border:1px solid var(--hrs-line); border-radius:11px; background:#fff; overflow:hidden; }
+  #hrsCapstone summary { cursor:pointer; padding:12px 14px; font-weight:800; color:var(--hrs-navy); background:#f8fafc; }
+  #hrsCapstone .hrs-review-body { padding:13px 14px; }
+  #hrsCapstone .hrs-review-row { margin-bottom:9px; }
+  #hrsCapstone .hrs-review-row b { color:var(--hrs-navy); }
+  #hrsCapstone .hrs-empty { color:var(--hrs-muted); font-size:.88rem; }
+  #hrsCapstone .hrs-score-note { margin-top:8px; font-size:.8rem; color:var(--hrs-muted); }
+  #hrsCapstone .hrs-live { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+  @media (max-width:900px) {
+    #hrsCapstone .hrs-intro, #hrsCapstone .hrs-work-grid { grid-template-columns:1fr; }
+    #hrsCapstone .hrs-report-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  }
+  @media (max-width:640px) {
+    #hrsCapstone { width:min(100% - 12px, 1180px); margin:8px auto; }
+    #hrsCapstone .hrs-body, #hrsCapstone .hrs-topbar { padding:15px; }
+    #hrsCapstone .hrs-queue, #hrsCapstone .hrs-inspection-grid { grid-template-columns:1fr; }
+    #hrsCapstone .hrs-status-grid { grid-template-columns:1fr 1fr; }
+    #hrsCapstone .hrs-report-grid { grid-template-columns:1fr 1fr; }
+    #hrsCapstone .hrs-work-head { flex-direction:column; }
+    #hrsCapstone .hrs-top-actions { width:100%; }
+    #hrsCapstone .hrs-top-actions .hrs-btn { flex:1; }
+    #hrsCapstone .hrs-ticket { grid-template-columns:auto 1fr; }
+    #hrsCapstone .hrs-ticket .hrs-pill { grid-column:2; justify-self:start; }
+  }
+</style>
+</head>
+<body>
+<div id="hrsCapstone">
+  <div class="hrs-app">
+    <div class="hrs-topbar">
+      <div class="hrs-brand">
+        <div class="hrs-logo" aria-hidden="true">IT</div>
+        <div>
+          <h1>Hardware Repair Shop — Technician Ticket Center</h1>
+          <p>A+ Core 1 (220-1201) • Hardware Capstone • Chapters 1–2</p>
+        </div>
+      </div>
+      <div class="hrs-top-actions">
+        <button class="hrs-btn hrs-btn-secondary" type="button" data-action="dashboard">Ticket Queue</button>
+        <button class="hrs-btn hrs-btn-secondary" type="button" data-action="reset-all">Reset Lab</button>
+      </div>
+    </div>
+
+    <div class="hrs-body">
+      <section id="hrsDashboard" class="hrs-view active" aria-labelledby="hrsDashboardTitle">
+        <div class="hrs-intro">
+          <div class="hrs-card">
+            <div class="hrs-kicker">Junior Technician Assignment</div>
+            <h2 id="hrsDashboardTitle">Hardware Repair Shop</h2>
+            <p>You are working as a junior IT technician. Your job is to resolve the customer tickets in your queue. Investigate each problem carefully before making a repair.</p>
+            <p class="hrs-muted"><strong>Workflow:</strong> Read the problem → ask a useful question → inspect the system → identify evidence → diagnose → repair → verify.</p>
+            <div class="hrs-tech-note"><strong>Scoring:</strong> Technical points are based on your first submitted troubleshooting plan for each ticket. Hints are tracked but do not deduct points. Reflection responses do not affect your technical score.</div>
+          </div>
+          <div class="hrs-card">
+            <h3>Technician Status</h3>
+            <div class="hrs-status-grid">
+              <div class="hrs-stat"><div class="hrs-stat-label">Status</div><div class="hrs-stat-value" id="hrsStatus">Ready</div></div>
+              <div class="hrs-stat"><div class="hrs-stat-label">Completed</div><div class="hrs-stat-value" id="hrsCompleted">0 / 8</div></div>
+              <div class="hrs-stat"><div class="hrs-stat-label">Remaining</div><div class="hrs-stat-value" id="hrsRemaining">8</div></div>
+              <div class="hrs-stat"><div class="hrs-stat-label">Score</div><div class="hrs-stat-value" id="hrsScore">0 / 28</div></div>
+            </div>
+            <div class="hrs-progress-wrap">
+              <div class="hrs-progress-line" aria-label="Ticket completion progress"><div class="hrs-progress-fill" id="hrsProgress"></div></div>
+              <div class="hrs-progress-text"><span>Ticket progress</span><span id="hrsProgressText">0%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hrs-queue-title">
+          <h2 style="margin:0">Ticket Queue</h2>
+          <span class="hrs-pill open" id="hrsQueueSummary">8 open tickets</span>
+        </div>
+        <div id="hrsQueue" class="hrs-queue"></div>
+      </section>
+
+      <section id="hrsWorkspace" class="hrs-view" aria-live="polite"></section>
+      <section id="hrsResults" class="hrs-view"></section>
+      <div class="hrs-live" id="hrsLive" aria-live="polite"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var TICKETS = [{"id": 1, "title": "Power & Thermal Troubleshooting", "tag": "Thermal", "problem": "The customer's PC randomly shuts down after about 10–15 minutes of use. It becomes noticeably hot before shutting down.", "customerQuestions": [{"id": "q_change", "text": "Did anything change immediately before the problem started?", "best": false}, {"id": "q_timing", "text": "Does the shutdown happen after the PC has been running for a while?", "best": true}, {"id": "q_wallpaper", "text": "What desktop wallpaper do you use?", "best": false}, {"id": "q_browser", "text": "Which web browser is installed?", "best": false}], "inspections": [{"id": "cpu_temp", "label": "CPU Temperature", "icon": "°C", "detail": "Idle: 71°C • Light load after 8 min: 94°C • System shuts down near 100°C.", "tone": "warning"}, {"id": "cpu_fan", "label": "CPU Fan", "icon": "FAN", "detail": "CPU fan reads 0 RPM. The fan blades do not spin when the system is powered on.", "tone": "danger"}, {"id": "case_fans", "label": "Case Airflow", "icon": "AIR", "detail": "Front intake and rear exhaust fans are operating. Airflow direction is correct.", "tone": "good"}, {"id": "dust", "label": "Dust Check", "icon": "DUST", "detail": "Light dust is present, but vents are not blocked and the heatsink fins remain mostly clear.", "tone": "neutral"}, {"id": "paste", "label": "Thermal Paste", "icon": "TIM", "detail": "Thermal paste is present under the cooler. It is not ideal, but there is still full coverage.", "tone": "neutral"}, {"id": "psu", "label": "Power Supply", "icon": "PSU", "detail": "650W PSU. Voltage readings are stable during light load before the thermal shutdown.", "tone": "good"}], "priorityOptions": [{"id": "p_temp", "text": "Check CPU temperature and cooling operation"}, {"id": "p_storage", "text": "Check available storage space"}, {"id": "p_audio", "text": "Check audio output device"}, {"id": "p_network", "text": "Check network adapter settings"}], "correctPriority": "p_temp", "evidenceOptions": [{"id": "e_fan", "text": "CPU reaches 94°C and the CPU fan reports 0 RPM"}, {"id": "e_dust", "text": "There is a small amount of dust in the case"}, {"id": "e_psu", "text": "The system has a 650W PSU"}, {"id": "e_browser", "text": "The customer uses the PC for web browsing"}], "correctEvidence": "e_fan", "causeOptions": [{"id": "c_fan", "text": "CPU fan is not operating, causing the CPU to overheat"}, {"id": "c_psu", "text": "The PSU wattage is too low"}, {"id": "c_ram", "text": "A RAM module is incompatible"}, {"id": "c_drive", "text": "The storage drive is nearly full"}], "correctCause": "c_fan", "repairOptions": [{"id": "r_fan", "text": "Reconnect or replace the CPU fan, confirm it spins, then retest temperatures"}, {"id": "r_psu", "text": "Replace the PSU with a higher-wattage unit"}, {"id": "r_ram", "text": "Reseat both RAM modules"}, {"id": "r_os", "text": "Reinstall the operating system"}], "correctRepair": "r_fan", "hints": ["Focus on the fact that the shutdown happens after the system warms up.", "Compare the temperature reading with the cooling hardware that should remove heat.", "A component responsible for moving air over the CPU is reporting no activity."], "verification": ["CPU fan: 1,480 RPM", "Idle temperature: 39°C", "10-minute load test: 72°C", "No unexpected shutdown"], "success": "The CPU fan is operating again and temperatures remain within a safe range.", "answer": {"diagnosis": "The CPU fan is not operating, causing CPU overheating and thermal shutdown.", "repair": "Reconnect the CPU fan if it was unplugged; replace it if it fails to spin. Then verify fan RPM and CPU temperatures under load.", "why": "The shutdown occurs only after the system heats up. The CPU reaches 94°C and the CPU fan reports 0 RPM, while case airflow and PSU readings are normal.", "evidence": "High CPU temperature, a non-spinning CPU fan, normal case fans, and stable PSU readings point to a local CPU cooling failure rather than a general power problem."}, "minInspections": 2}, {"id": 2, "title": "Display & GPU Troubleshooting", "tag": "Display / GPU", "problem": "A customer installed a new graphics card. The computer powers on, but the monitor displays “No Signal.”", "customerQuestions": [{"id": "q_change", "text": "Did the display problem begin immediately after installing the graphics card?", "best": true}, {"id": "q_mouse", "text": "What mouse sensitivity do you use?", "best": false}, {"id": "q_files", "text": "How many files are stored on the PC?", "best": false}, {"id": "q_sound", "text": "Do the speakers use Bluetooth?", "best": false}], "inspections": [{"id": "gpu", "label": "Graphics Card", "icon": "GPU", "detail": "Dedicated GPU is fully seated in the PCIe x16 slot. Its fans briefly spin at startup.", "tone": "good"}, {"id": "gpu_power", "label": "GPU Power", "icon": "8P", "detail": "Required 8-pin PCIe power connector is attached and latched.", "tone": "good"}, {"id": "display_cable", "label": "Display Cable", "icon": "DP", "detail": "DisplayPort cable is secure at the monitor. The PC end is connected to a DisplayPort jack in the motherboard I/O area.", "tone": "warning"}, {"id": "gpu_outputs", "label": "GPU Outputs", "icon": "OUT", "detail": "The dedicated GPU has three DisplayPort outputs and one HDMI output available lower on the rear of the case.", "tone": "neutral"}, {"id": "monitor", "label": "Monitor", "icon": "MON", "detail": "Monitor is powered on and set to the correct DisplayPort input. It works with another computer.", "tone": "good"}, {"id": "motherboard", "label": "Motherboard I/O", "icon": "MB", "detail": "The monitor cable is currently connected here instead of to the newly installed dedicated graphics card.", "tone": "danger"}], "priorityOptions": [{"id": "p_cable", "text": "Trace the monitor cable from the display to the PC"}, {"id": "p_drive", "text": "Check drive free space"}, {"id": "p_fan", "text": "Check CPU cooler mounting"}, {"id": "p_usb", "text": "Check front USB ports"}], "correctPriority": "p_cable", "evidenceOptions": [{"id": "e_mb", "text": "The PC end of the display cable is connected to motherboard video output"}, {"id": "e_fans", "text": "The GPU fans spin briefly at startup"}, {"id": "e_monitor", "text": "The monitor is set to DisplayPort"}, {"id": "e_psu", "text": "The PC powers on"}], "correctEvidence": "e_mb", "causeOptions": [{"id": "c_output", "text": "The monitor is connected to the motherboard video output instead of the dedicated GPU"}, {"id": "c_deadgpu", "text": "The new GPU is definitely defective"}, {"id": "c_ram", "text": "The system needs more RAM"}, {"id": "c_drive", "text": "The boot drive is disconnected"}], "correctCause": "c_output", "repairOptions": [{"id": "r_move", "text": "Move the display cable to a video output on the dedicated GPU"}, {"id": "r_replace", "text": "Replace the monitor"}, {"id": "r_psu", "text": "Replace the PSU"}, {"id": "r_bios", "text": "Clear all BIOS settings"}], "correctRepair": "r_move", "hints": ["A new graphics card changes where the monitor should receive its video signal.", "Trace both ends of the display cable instead of assuming the cable is in the right port.", "Compare the motherboard I/O area with the video outputs located directly on the GPU."], "verification": ["Monitor connected to GPU DisplayPort", "POST screen visible", "Operating system desktop displayed", "GPU detected by the system"], "success": "Video output is restored through the dedicated graphics card.", "answer": {"diagnosis": "The display cable is connected to the motherboard video output instead of the dedicated GPU.", "repair": "Move the monitor cable to an HDMI or DisplayPort output on the dedicated graphics card.", "why": "The GPU is seated and powered, and the monitor works. The key evidence is that the display cable terminates at the motherboard I/O rather than at the dedicated GPU.", "evidence": "A known-good monitor, a powered/seated GPU, and a cable connected to the wrong video output isolate the issue to the display connection."}, "minInspections": 2}, {"id": 3, "title": "Insufficient Power After GPU Upgrade", "tag": "Power", "problem": "The customer upgraded their graphics card. The computer now randomly shuts down during gaming.", "customerQuestions": [{"id": "q_load", "text": "Does the shutdown happen mainly during gaming or other heavy GPU use?", "best": true}, {"id": "q_keyboard", "text": "What keyboard layout do you use?", "best": false}, {"id": "q_theme", "text": "Is Windows using light or dark mode?", "best": false}, {"id": "q_printer", "text": "Do you own a printer?", "best": false}], "inspections": [{"id": "psu", "label": "Installed PSU", "icon": "500W", "detail": "ATX power supply rated for 500W continuous output.", "tone": "warning"}, {"id": "gpu", "label": "New GPU", "icon": "GPU", "detail": "GPU vendor recommends a 650W system PSU for this model.", "tone": "danger"}, {"id": "estimate", "label": "System Power Estimate", "icon": "575W", "detail": "Estimated peak system demand with the upgraded GPU: approximately 575W.", "tone": "danger"}, {"id": "gpu_power", "label": "GPU Power Cable", "icon": "PCIe", "detail": "All required PCIe auxiliary power connectors are attached and latched.", "tone": "good"}, {"id": "temps", "label": "Temperatures", "icon": "°C", "detail": "CPU peak: 76°C • GPU peak: 79°C. Both remain below thermal shutdown range.", "tone": "good"}, {"id": "logs", "label": "Symptom Pattern", "icon": "LOG", "detail": "Shutdown occurs during high GPU load and does not usually occur during light desktop use.", "tone": "warning"}], "priorityOptions": [{"id": "p_power", "text": "Compare PSU capacity with upgraded system power requirements"}, {"id": "p_audio", "text": "Test the speakers"}, {"id": "p_storage", "text": "Defragment the storage drive"}, {"id": "p_mouse", "text": "Replace the mouse"}], "correctPriority": "p_power", "evidenceOptions": [{"id": "e_watts", "text": "Estimated demand is ~575W, the GPU recommends 650W, and the installed PSU is 500W"}, {"id": "e_temp", "text": "GPU temperature reaches 79°C"}, {"id": "e_cables", "text": "PCIe power connectors are attached"}, {"id": "e_desktop", "text": "The PC works during light desktop use"}], "correctEvidence": "e_watts", "causeOptions": [{"id": "c_psu", "text": "The installed PSU does not provide enough capacity for the upgraded system"}, {"id": "c_gpu", "text": "The GPU is overheating"}, {"id": "c_ram", "text": "Windows is not detecting all RAM"}, {"id": "c_monitor", "text": "The monitor input is incorrect"}], "correctCause": "c_psu", "repairOptions": [{"id": "r_psu", "text": "Install a quality PSU that meets or exceeds the GPU/system recommendation and reconnect required power leads"}, {"id": "r_fan", "text": "Replace the CPU fan"}, {"id": "r_cable", "text": "Move the display cable to the motherboard"}, {"id": "r_drive", "text": "Initialize the storage drive"}], "correctRepair": "r_psu", "hints": ["The symptom appears when system demand increases.", "Compare three numbers: installed PSU capacity, estimated peak demand, and the GPU manufacturer's recommendation.", "The temperatures are useful evidence because they help rule out a thermal shutdown."], "verification": ["New PSU: 750W", "GPU power connectors verified", "20-minute gaming load test passed", "No power loss under load"], "success": "The upgraded system now has adequate power capacity and remains stable under GPU load.", "answer": {"diagnosis": "The 500W PSU is undersized for the upgraded graphics card and total system demand.", "repair": "Replace the PSU with a quality unit that meets or exceeds the GPU recommendation, then reconnect and verify all required power connectors.", "why": "The estimated system demand is about 575W and the GPU vendor recommends 650W, but the installed PSU provides only 500W. Shutdowns occur during gaming, when GPU power demand rises.", "evidence": "The wattage mismatch and load-dependent shutdown pattern support a power-capacity problem; normal CPU/GPU temperatures help rule out overheating."}, "minInspections": 2}, {"id": 4, "title": "RAM Not Detected", "tag": "Memory", "problem": "The customer installed additional RAM, but Windows only shows half of the expected memory.", "customerQuestions": [{"id": "q_after", "text": "Did the missing memory appear immediately after the new RAM was installed?", "best": true}, {"id": "q_wifi", "text": "What Wi-Fi network do you use?", "best": false}, {"id": "q_case", "text": "What color is the computer case?", "best": false}, {"id": "q_browser", "text": "Which browser is your default?", "best": false}], "inspections": [{"id": "system", "label": "System Memory", "icon": "16GB", "detail": "Installed physically: 32GB expected • Windows usable memory: 16GB.", "tone": "warning"}, {"id": "dimm_a2", "label": "DIMM A2", "icon": "RAM", "detail": "16GB DDR5 module. Retention clips are fully locked. Module detected in firmware.", "tone": "good"}, {"id": "dimm_b2", "label": "DIMM B2", "icon": "RAM", "detail": "16GB DDR5 module. One side is slightly raised and the retention clip is not fully locked.", "tone": "danger"}, {"id": "compat", "label": "Compatibility", "icon": "DDR5", "detail": "Both modules are matching 16GB DDR5-5600 UDIMMs supported by the motherboard.", "tone": "good"}, {"id": "bios", "label": "BIOS / UEFI", "icon": "UEFI", "detail": "Firmware reports total memory: 16GB. Only DIMM A2 is detected.", "tone": "warning"}, {"id": "slots", "label": "Motherboard Slots", "icon": "A2/B2", "detail": "For two modules, the board documentation specifies A2 and B2. The modules are installed in those locations.", "tone": "good"}], "priorityOptions": [{"id": "p_seat", "text": "Check whether both RAM modules are fully seated and detected"}, {"id": "p_psu", "text": "Measure PSU wattage"}, {"id": "p_monitor", "text": "Change the monitor input"}, {"id": "p_drive", "text": "Check storage partition style"}], "correctPriority": "p_seat", "evidenceOptions": [{"id": "e_b2", "text": "DIMM B2 is raised on one side, its clip is not locked, and firmware does not detect it"}, {"id": "e_ddr5", "text": "Both modules are DDR5"}, {"id": "e_slots", "text": "The board recommends slots A2 and B2"}, {"id": "e_windows", "text": "Windows shows 16GB"}], "correctEvidence": "e_b2", "causeOptions": [{"id": "c_unseated", "text": "The new RAM module is not fully seated in the DIMM slot"}, {"id": "c_incompat", "text": "The motherboard only supports DDR4"}, {"id": "c_psu", "text": "The PSU is too small"}, {"id": "c_gpu", "text": "The GPU is using all system memory"}], "correctCause": "c_unseated", "repairOptions": [{"id": "r_reseat", "text": "Power down, reseat the B2 RAM module until both retention points are secure, then confirm memory in firmware and Windows"}, {"id": "r_os", "text": "Reinstall Windows"}, {"id": "r_psu", "text": "Replace the PSU"}, {"id": "r_move", "text": "Move the monitor cable"}], "correctRepair": "r_reseat", "hints": ["If both Windows and firmware see only half the expected memory, start below the operating system.", "Compare the physical condition of the two DIMM slots.", "A retention clip that is not fully locked is important evidence."], "verification": ["DIMM A2 detected: 16GB", "DIMM B2 detected: 16GB", "Firmware total: 32GB", "Windows usable memory: 32GB"], "success": "Both memory modules are fully seated and the system now detects all 32GB.", "answer": {"diagnosis": "One RAM module is not fully seated, so the system detects only the other 16GB module.", "repair": "Shut down and disconnect power, reseat the B2 DIMM until it is fully inserted and secured, then confirm 32GB in UEFI and Windows.", "why": "The modules are compatible and installed in the recommended slots, but B2 is physically raised and not detected in firmware.", "evidence": "A loose B2 module plus firmware detecting only A2 is stronger evidence than the Windows reading alone."}, "minInspections": 2}, {"id": 5, "title": "Storage Drive Not Detected", "tag": "Storage", "problem": "A customer installed a new storage drive, but the computer doesn't recognize it.", "customerQuestions": [{"id": "q_type", "text": "What type of drive was installed, and where was it connected?", "best": true}, {"id": "q_wallpaper", "text": "Did you change the desktop wallpaper?", "best": false}, {"id": "q_speakers", "text": "How loud are the speakers?", "best": false}, {"id": "q_mouse", "text": "Is the mouse wired or wireless?", "best": false}], "inspections": [{"id": "drive", "label": "New Drive", "icon": "SATA", "detail": "2.5-inch SATA SSD, 1TB. This drive requires both SATA data and SATA power.", "tone": "neutral"}, {"id": "data", "label": "SATA Data Cable", "icon": "DATA", "detail": "SATA data cable is connected from the SSD to motherboard SATA port 2.", "tone": "good"}, {"id": "power", "label": "SATA Power", "icon": "PWR", "detail": "No SATA power connector is attached to the SSD.", "tone": "danger"}, {"id": "bios", "label": "BIOS / UEFI", "icon": "UEFI", "detail": "SATA port 2 shows: Not Present.", "tone": "warning"}, {"id": "m2", "label": "M.2 Slots", "icon": "M.2", "detail": "M.2 slot configuration is unrelated to this 2.5-inch SATA SSD installation.", "tone": "neutral"}, {"id": "old_drive", "label": "Existing Drive", "icon": "NVMe", "detail": "Existing M.2 NVMe boot drive is detected and operating normally.", "tone": "good"}], "priorityOptions": [{"id": "p_connections", "text": "Verify the new drive's required data and power connections"}, {"id": "p_gpu", "text": "Inspect the GPU power cable"}, {"id": "p_ram", "text": "Reseat system RAM"}, {"id": "p_monitor", "text": "Test another monitor"}], "correctPriority": "p_connections", "evidenceOptions": [{"id": "e_power", "text": "The SATA data cable is connected, but the SSD has no SATA power connection"}, {"id": "e_m2", "text": "An M.2 slot exists on the motherboard"}, {"id": "e_boot", "text": "The existing NVMe drive works"}, {"id": "e_port", "text": "The data cable uses SATA port 2"}], "correctEvidence": "e_power", "causeOptions": [{"id": "c_power", "text": "The SATA SSD is not receiving power"}, {"id": "c_m2", "text": "The M.2 slot is disabled"}, {"id": "c_ram", "text": "The RAM is incompatible"}, {"id": "c_gpu", "text": "The graphics card blocks storage detection"}], "correctCause": "c_power", "repairOptions": [{"id": "r_power", "text": "Connect a SATA power lead from the PSU to the SSD, then confirm detection in firmware and the operating system"}, {"id": "r_replace", "text": "Replace the motherboard"}, {"id": "r_gpu", "text": "Remove the graphics card"}, {"id": "r_fan", "text": "Replace the CPU fan"}], "correctRepair": "r_power", "hints": ["A 2.5-inch SATA SSD needs more than a data connection.", "Inspect the connectors on the drive itself.", "The firmware cannot detect a drive that is not powered."], "verification": ["SATA data connected", "SATA power connected", "UEFI detects 1TB SSD", "Operating system detects new drive"], "success": "The SATA SSD is powered and detected by both firmware and the operating system.", "answer": {"diagnosis": "The 2.5-inch SATA SSD has a data cable but no SATA power connection.", "repair": "Connect SATA power from the PSU to the SSD, then confirm that the drive appears in UEFI and the operating system.", "why": "A SATA SSD needs both data and power. The data cable is connected, but no power lead is attached and UEFI reports the port as not present.", "evidence": "The missing power connection directly explains why the drive is absent even though the SATA data path is present."}, "minInspections": 2}, {"id": 6, "title": "CPU / Cooling Installation Problem", "tag": "CPU / Cooling", "problem": "The customer recently installed a new CPU. The computer boots, but the CPU temperature quickly becomes dangerously high.", "customerQuestions": [{"id": "q_cooler", "text": "Was the CPU cooler removed or reinstalled during the CPU upgrade?", "best": true}, {"id": "q_keyboard", "text": "What brand is the keyboard?", "best": false}, {"id": "q_wifi", "text": "How fast is your internet plan?", "best": false}, {"id": "q_files", "text": "How many documents are on the PC?", "best": false}], "inspections": [{"id": "temp", "label": "CPU Temperature", "icon": "96°C", "detail": "CPU reaches 96°C within two minutes of a light stress test.", "tone": "danger"}, {"id": "fan", "label": "CPU Fan", "icon": "FAN", "detail": "CPU fan spins at 1,720 RPM and is connected to CPU_FAN.", "tone": "good"}, {"id": "mount", "label": "Cooler Mount", "icon": "MNT", "detail": "One corner of the cooler is not fully secured. The heatsink can rock slightly when gently checked.", "tone": "danger"}, {"id": "paste", "label": "Thermal Interface", "icon": "TIM", "detail": "Fresh thermal paste is present, but contact is uneven because the cooler is not flat against the CPU heat spreader.", "tone": "warning"}, {"id": "cpu", "label": "CPU Compatibility", "icon": "CPU", "detail": "CPU model is supported by this motherboard and current firmware version.", "tone": "good"}, {"id": "airflow", "label": "Case Airflow", "icon": "AIR", "detail": "Case intake and exhaust fans are operating normally.", "tone": "good"}], "priorityOptions": [{"id": "p_cooler", "text": "Inspect cooler mounting, fan operation, and CPU contact"}, {"id": "p_storage", "text": "Check SSD health"}, {"id": "p_display", "text": "Change display resolution"}, {"id": "p_network", "text": "Reset the network adapter"}], "correctPriority": "p_cooler", "evidenceOptions": [{"id": "e_mount", "text": "The cooler rocks slightly and one corner is not fully secured"}, {"id": "e_fan", "text": "The CPU fan spins at 1,720 RPM"}, {"id": "e_compat", "text": "The CPU is supported"}, {"id": "e_air", "text": "Case fans are operating"}], "correctEvidence": "e_mount", "causeOptions": [{"id": "c_mount", "text": "The CPU cooler is mounted unevenly and is not making proper contact"}, {"id": "c_cpu", "text": "The CPU is incompatible with the motherboard"}, {"id": "c_psu", "text": "The PSU is too weak"}, {"id": "c_drive", "text": "The boot drive is overheating"}], "correctCause": "c_mount", "repairOptions": [{"id": "r_mount", "text": "Power down, remount the CPU cooler evenly with proper contact, then retest temperature"}, {"id": "r_fan", "text": "Replace the working CPU fan only"}, {"id": "r_psu", "text": "Install a larger PSU"}, {"id": "r_ram", "text": "Replace all RAM"}], "correctRepair": "r_mount", "hints": ["The fan is spinning, so look at whether heat can actually transfer from the CPU into the cooler.", "A cooler can have a working fan and still fail to cool the CPU.", "Pay attention to the physical mounting and contact pressure."], "verification": ["Cooler secured evenly", "CPU fan: 1,680 RPM", "Idle temperature: 38°C", "Stress-test temperature: 73°C"], "success": "The cooler now makes even contact and the CPU temperature remains safe.", "answer": {"diagnosis": "The CPU cooler is mounted unevenly and does not make proper contact with the CPU.", "repair": "Remount the cooler evenly and securely with proper thermal-interface contact, then verify temperatures under load.", "why": "The CPU is compatible, the fan runs normally, and case airflow is good. The cooler itself is loose at one corner, creating poor contact and rapid overheating.", "evidence": "A rocking heatsink and uneven contact directly explain the extreme temperature despite a working CPU fan."}, "minInspections": 2}, {"id": 7, "title": "Mobile & Laptop Hardware Technician", "tag": "Laptop Hardware", "problem": "The customer says, “My laptop battery only lasts about 30 minutes, even after I charge it to 100%. The laptop works normally when it is plugged in.”", "customerQuestions": [{"id": "q_ac", "text": "Does the laptop operate normally when connected to AC power, and did the battery life get worse over time?", "best": true}, {"id": "q_wallpaper", "text": "What desktop wallpaper do you use?", "best": false}, {"id": "q_webcam", "text": "How often do you use the webcam for video calls?", "best": false}, {"id": "q_files", "text": "How many files are stored in your Documents folder?", "best": false}], "inspections": [{"id": "battery", "label": "Battery Health", "icon": "BAT", "detail": "Battery design capacity: 52 Wh • Current full-charge capacity: 10.8 Wh • Cycle count: 684 • Health status: Poor.", "tone": "danger"}, {"id": "adapter", "label": "AC Adapter", "icon": "65W", "detail": "Manufacturer-approved 65W adapter is connected. Charging voltage is stable and the laptop operates normally while plugged in.", "tone": "good"}, {"id": "charge", "label": "Charge / Discharge Test", "icon": "%", "detail": "The battery reaches 100%, but drops below 50% in about 15 minutes of normal use. No unexpected power loss occurs while AC power is connected.", "tone": "warning"}, {"id": "sodimm", "label": "Laptop RAM / SO-DIMM", "icon": "RAM", "detail": "16GB DDR5 SO-DIMM is fully seated and detected. Memory diagnostic reports no errors.", "tone": "good"}, {"id": "storage", "label": "Laptop Storage", "icon": "M.2", "detail": "512GB M.2 NVMe SSD is detected and operating normally. Storage health does not indicate a power-related fault.", "tone": "good"}, {"id": "display", "label": "Laptop Display", "icon": "LCD", "detail": "14-inch internal display operates normally with no flickering, dimming, or backlight failure.", "tone": "good"}, {"id": "webcam", "label": "Webcam", "icon": "CAM", "detail": "Integrated webcam is detected and functions normally in the hardware test.", "tone": "good"}, {"id": "wifi", "label": "Wi-Fi Adapter", "icon": "WIFI", "detail": "Internal M.2 Wi-Fi adapter is detected, antennas are connected, and wireless connectivity is stable.", "tone": "good"}, {"id": "dock", "label": "Docking Station", "icon": "DOCK", "detail": "USB-C docking station connects displays and peripherals normally. Testing directly with the laptop's approved AC adapter produces the same short battery runtime.", "tone": "neutral"}], "priorityOptions": [{"id": "p_battery", "text": "Compare battery health and full-charge capacity with the original design capacity"}, {"id": "p_ram", "text": "Replace the SO-DIMM memory first"}, {"id": "p_display", "text": "Replace the laptop display"}, {"id": "p_wifi", "text": "Reinstall the Wi-Fi adapter"}], "correctPriority": "p_battery", "evidenceOptions": [{"id": "e_capacity", "text": "The battery's full-charge capacity is only 10.8 Wh compared with its original 52 Wh design capacity, while AC operation is stable"}, {"id": "e_ram", "text": "The laptop uses a DDR5 SO-DIMM module"}, {"id": "e_display", "text": "The laptop has a 14-inch internal display"}, {"id": "e_dock", "text": "A USB-C docking station is available"}], "correctEvidence": "e_capacity", "causeOptions": [{"id": "c_battery", "text": "The laptop battery is heavily degraded and can no longer hold close to its original charge capacity"}, {"id": "c_adapter", "text": "The AC adapter is not supplying enough power"}, {"id": "c_ram", "text": "The SO-DIMM memory is incompatible"}, {"id": "c_wifi", "text": "The Wi-Fi adapter is causing the laptop to discharge in 30 minutes"}], "correctCause": "c_battery", "repairOptions": [{"id": "r_battery", "text": "Replace the battery with a compatible laptop battery, inspect the old battery for damage or swelling, and verify charging and battery runtime"}, {"id": "r_adapter", "text": "Replace the working 65W AC adapter"}, {"id": "r_sodimm", "text": "Replace the SO-DIMM RAM"}, {"id": "r_dock", "text": "Replace the docking station"}], "correctRepair": "r_battery", "hints": ["Separate a charging problem from a battery-capacity problem. Notice what happens when the laptop is connected to AC power.", "Compare the battery's current full-charge capacity with the capacity it was designed to hold when new.", "A battery that reaches 100% can still be worn out if 100% now represents only a small fraction of its original capacity."], "verification": ["Replacement battery detected: compatible model", "Full-charge capacity: approximately 51.6 Wh", "Charging through approved AC adapter: normal", "Two-hour unplugged test completed with substantial charge remaining"], "success": "The degraded laptop battery has been replaced and the system now maintains normal battery runtime.", "answer": {"diagnosis": "The laptop battery is severely degraded and can no longer store close to its original energy capacity.", "repair": "Replace the battery with a compatible replacement, inspect the removed battery for swelling or physical damage, then verify charging and unplugged runtime.", "why": "The laptop works normally on AC power, which makes the adapter and general system power path less likely to be the problem. The battery was designed for 52 Wh but now holds only 10.8 Wh at a full charge and has a high cycle count. That explains why the displayed charge reaches 100% but lasts only about 30 minutes.", "evidence": "The strongest evidence is the large difference between design capacity and current full-charge capacity. Stable AC operation, normal SO-DIMM memory, storage, display, webcam, Wi-Fi, and docking-station checks help rule out unrelated laptop hardware."}, "minInspections": 3}, {"id": 8, "title": "Final Mystery Ticket", "tag": "Capstone", "problem": "“My computer has been acting weird since I upgraded it. Sometimes the screen goes black, sometimes the computer shuts down, and occasionally it won't start on the first attempt.”", "customerQuestions": [{"id": "q_upgrade", "text": "Which components were touched or installed during the upgrade?", "best": true}, {"id": "q_browser", "text": "Which browser do you use most often?", "best": false}, {"id": "q_wall", "text": "What color is the wall behind the PC?", "best": false}, {"id": "q_printer", "text": "How often do you print documents?", "best": false}], "inspections": [{"id": "history", "label": "Upgrade History", "icon": "HIST", "detail": "Customer installed a new GPU and added a second SSD. They moved several cables to create space inside the case.", "tone": "warning"}, {"id": "psu", "label": "PSU Capacity", "icon": "750W", "detail": "Installed PSU: 750W. Estimated peak demand: 515W. Capacity is adequate.", "tone": "good"}, {"id": "gpu", "label": "GPU & Display", "icon": "GPU", "detail": "GPU is fully seated, its power connector is latched, and the monitor cable is connected to the dedicated GPU.", "tone": "good"}, {"id": "temps", "label": "Temperatures", "icon": "°C", "detail": "CPU peak: 74°C • GPU peak: 78°C. No thermal limit is reached before failures.", "tone": "good"}, {"id": "memory", "label": "Memory Test", "icon": "RAM", "detail": "32GB detected in UEFI. Quick memory diagnostic completes with no errors.", "tone": "good"}, {"id": "storage", "label": "Storage", "icon": "SSD", "detail": "Both drives are detected. SATA power/data and M.2 installation appear correct.", "tone": "good"}, {"id": "atx24", "label": "24-pin ATX Power", "icon": "24P", "detail": "Motherboard 24-pin power connector is inserted but the latch is not engaged. One edge sits slightly above the socket.", "tone": "danger"}, {"id": "cpu8", "label": "CPU Power", "icon": "8P", "detail": "8-pin CPU/EPS power connector is fully seated and latched.", "tone": "good"}, {"id": "pattern", "label": "Failure Pattern", "icon": "LOG", "detail": "Failures are intermittent and can occur before the OS loads. A gentle case movement reproduced one failed start.", "tone": "warning"}], "priorityOptions": [{"id": "p_changes", "text": "Review what changed during the upgrade and inspect any disturbed power/data connections"}, {"id": "p_os", "text": "Reinstall the operating system immediately"}, {"id": "p_monitor", "text": "Replace the monitor first"}, {"id": "p_ram", "text": "Replace all RAM before inspecting anything else"}], "correctPriority": "p_changes", "evidenceOptions": [{"id": "e_24", "text": "The 24-pin motherboard power connector is not latched and sits slightly above the socket"}, {"id": "e_psu", "text": "The system has a 750W PSU"}, {"id": "e_temp", "text": "GPU temperature reaches 78°C"}, {"id": "e_ssd", "text": "Two storage drives are installed"}], "correctEvidence": "e_24", "causeOptions": [{"id": "c_24", "text": "An incompletely seated 24-pin motherboard power connector is causing intermittent system power loss"}, {"id": "c_psu", "text": "The 750W PSU is too small for the system"}, {"id": "c_gpu", "text": "The GPU is overheating"}, {"id": "c_ram", "text": "The RAM capacity is insufficient"}], "correctCause": "c_24", "repairOptions": [{"id": "r_24", "text": "Power down, fully reseat and latch the 24-pin ATX motherboard power connector, inspect nearby connections, then run startup and load tests"}, {"id": "r_psu", "text": "Replace the 750W PSU with a 1000W PSU"}, {"id": "r_os", "text": "Reinstall the operating system"}, {"id": "r_gpu", "text": "Replace the graphics card"}], "correctRepair": "r_24", "hints": ["Because several different symptoms started after an upgrade, first separate causes from components that test normally.", "The failures can happen before the operating system loads, so software is less likely to be the root cause.", "Look for one physical connection that could interrupt power to many parts of the system at once."], "verification": ["24-pin ATX connector fully latched", "10 cold starts passed", "20-minute CPU/GPU load test passed", "No black screen or unexpected shutdown"], "success": "The motherboard power connection is secure and the system remains stable across repeated startup and load tests.", "answer": {"diagnosis": "The 24-pin ATX motherboard power connector was left partially seated during the upgrade, causing intermittent system power loss.", "repair": "Power down, fully reseat and latch the 24-pin ATX connector, inspect adjacent disturbed connections, then verify repeated cold starts and a load test.", "why": "The PSU has adequate capacity, temperatures are normal, RAM and storage check out, and GPU/display connections are correct. The failure can occur before the OS loads and can be reproduced by moving the case. The partially latched motherboard power connector best explains all symptoms.", "evidence": "The strongest clue is the visibly unlatched 24-pin connector. The normal PSU capacity, temperatures, RAM, storage, and GPU checks help rule out common alternatives."}, "minInspections": 4}];
+
+  function hrsShuffle(list) {
+    var copy = list.slice();
+    for (var i = copy.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var temp = copy[i];
+      copy[i] = copy[j];
+      copy[j] = temp;
+    }
+    return copy;
+  }
+
+  function hrsAvoidCorrectFirst(list, correctId, isCustomerQuestion) {
+    if (!list || list.length < 2) return list;
+    var firstIsCorrect = isCustomerQuestion ? !!list[0].best : list[0].id === correctId;
+    if (firstIsCorrect) {
+      var swapIndex = 1 + Math.floor(Math.random() * (list.length - 1));
+      var temp = list[0];
+      list[0] = list[swapIndex];
+      list[swapIndex] = temp;
+    }
+    return list;
+  }
+
+  // Shuffle all visible answer choices once per lab load.
+  // Correct answers are deliberately kept out of the first position so students
+  // cannot learn a positional pattern across tickets.
+  TICKETS.forEach(function (t) {
+    t.customerQuestions = hrsAvoidCorrectFirst(hrsShuffle(t.customerQuestions), null, true);
+    t.priorityOptions = hrsAvoidCorrectFirst(hrsShuffle(t.priorityOptions), t.correctPriority, false);
+    t.evidenceOptions = hrsAvoidCorrectFirst(hrsShuffle(t.evidenceOptions), t.correctEvidence, false);
+    t.causeOptions = hrsAvoidCorrectFirst(hrsShuffle(t.causeOptions), t.correctCause, false);
+    t.repairOptions = hrsAvoidCorrectFirst(hrsShuffle(t.repairOptions), t.correctRepair, false);
+  });
+
+  var root = document.getElementById("hrsCapstone");
+  if (!root || root.dataset.initialized === "1") return;
+  root.dataset.initialized = "1";
+
+  var state = {
+    activeId: null,
+    tickets: {}
+  };
+
+  TICKETS.forEach(function (t) {
+    state.tickets[t.id] = {
+      complete:false,
+      inspected:[],
+      hintsUsed:0,
+      questionSelected:null,
+      questionChecked:false,
+      firstPlanSubmitted:false,
+      categoryPoints:{diagnosis:0, repair:0, troubleshooting:0, critical:0},
+      attempts:0,
+      repaired:false,
+      verified:false,
+      reflectionWhy:"",
+      reflectionMore:""
+    };
+  });
+
+  var dashboard = root.querySelector("#hrsDashboard");
+  var workspace = root.querySelector("#hrsWorkspace");
+  var results = root.querySelector("#hrsResults");
+  var queue = root.querySelector("#hrsQueue");
+  var live = root.querySelector("#hrsLive");
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c];
+    });
+  }
+
+  function ticketById(id) {
+    return TICKETS.find(function(t){ return t.id === Number(id); });
+  }
+
+  function showView(which) {
+    [dashboard, workspace, results].forEach(function(el){ el.classList.remove("active"); });
+    which.classList.add("active");
+    var top = root.getBoundingClientRect().top + window.pageYOffset - 12;
+    window.scrollTo({top:Math.max(0, top), behavior:"smooth"});
+  }
+
+  function totalPoints() {
+    var total = 0;
+    Object.keys(state.tickets).forEach(function (id) {
+      var p = state.tickets[id].categoryPoints;
+      total += p.diagnosis + p.repair + p.troubleshooting + p.critical;
+    });
+    return total;
+  }
+
+  function completedCount() {
+    return Object.keys(state.tickets).filter(function(id){return state.tickets[id].complete;}).length;
+  }
+
+  function updateDashboard() {
+    var done = completedCount();
+    var remaining = TICKETS.length - done;
+    var score = totalPoints();
+    root.querySelector("#hrsCompleted").textContent = done + " / " + TICKETS.length;
+    root.querySelector("#hrsRemaining").textContent = remaining;
+    root.querySelector("#hrsScore").textContent = score + " / " + (TICKETS.length * 4);
+    root.querySelector("#hrsStatus").textContent = done === TICKETS.length ? "All Tickets Closed" : (done > 0 ? "Tickets In Progress" : "Ready");
+    var pct = Math.round((done / TICKETS.length) * 100);
+    root.querySelector("#hrsProgress").style.width = pct + "%";
+    root.querySelector("#hrsProgressText").textContent = pct + "%";
+    root.querySelector("#hrsQueueSummary").textContent = remaining === 0 ? "Queue complete" : remaining + (remaining === 1 ? " open ticket" : " open tickets");
+    renderQueue();
+  }
+
+  function renderQueue() {
+    queue.innerHTML = TICKETS.map(function(t){
+      var st = state.tickets[t.id];
+      return '<button type="button" class="hrs-ticket" data-open-ticket="'+t.id+'">' +
+        '<span class="hrs-ticket-num">'+t.id+'</span>' +
+        '<span><strong>'+esc(t.title)+'</strong><small>'+esc(t.problem)+'</small></span>' +
+        '<span class="hrs-pill '+(st.complete ? 'done' : 'open')+'">'+(st.complete ? 'Completed' : esc(t.tag))+'</span>' +
+      '</button>';
+    }).join("");
+  }
+
+  function optionHtml(options, selected, placeholder) {
+    return '<option value="">'+esc(placeholder)+'</option>' + options.map(function(o){
+      return '<option value="'+esc(o.id)+'" '+(selected===o.id?'selected':'')+'>'+esc(o.text)+'</option>';
+    }).join("");
+  }
+
+  function openTicket(id) {
+    var t = ticketById(id);
+    if (!t) return;
+    state.activeId = t.id;
+    renderWorkspace(t);
+    showView(workspace);
+  }
+
+  function renderWorkspace(t) {
+    var st = state.tickets[t.id];
+    var questionHtml = t.customerQuestions.map(function(q){
+      return '<label class="hrs-choice"><input type="radio" name="hrsCustomerQ" value="'+esc(q.id)+'" '+(st.questionSelected===q.id?'checked':'')+'> <span>'+esc(q.text)+'</span></label>';
+    }).join("");
+
+    var inspectionHtml = t.inspections.map(function(i){
+      var seen = st.inspected.indexOf(i.id) >= 0;
+      return '<button type="button" class="hrs-inspect-btn '+(seen?'seen':'')+'" data-inspect="'+esc(i.id)+'">' +
+        '<span class="hrs-inspect-icon">'+esc(i.icon)+'</span><span class="hrs-inspect-label">'+esc(i.label)+'</span>' +
+        '<span class="hrs-muted" style="font-size:.75rem">'+(seen?'Inspected — click to review':'Click to inspect')+'</span></button>';
+    }).join("");
+
+    var latestInspection = st.inspected.length ? t.inspections.find(function(i){return i.id===st.inspected[st.inspected.length-1];}) : null;
+    var inspectOutput = latestInspection ?
+      '<div class="tone-'+esc(latestInspection.tone)+'">'+esc(latestInspection.label)+'</div><p style="margin-top:6px">'+esc(latestInspection.detail)+'</p>' :
+      '<div class="hrs-empty">Select a component or system area to inspect. Record what the evidence tells you before choosing a repair.</div>';
+
+    var hints = "";
+    for (var h=0; h<st.hintsUsed; h++) {
+      hints += '<div class="hrs-hint"><strong>Hint '+(h+1)+':</strong> '+esc(t.hints[h])+'</div>';
+    }
+
+    var repairStatus = "";
+    if (st.repaired) {
+      repairStatus = '<div class="hrs-repair-status success"><strong>✓ Repair completed</strong><p style="margin-top:5px">'+esc(t.success)+'</p>' +
+      (!st.verified ? '<button type="button" class="hrs-btn hrs-btn-success" data-action="verify">Run Verification Tests</button>' : verificationHtml(t)) +
+      '</div>';
+    } else {
+      repairStatus = '<div class="hrs-repair-status"><strong>Repair bay ready.</strong><p class="hrs-muted" style="margin-top:5px">Inspect at least '+t.minInspections+' system areas, then submit a complete troubleshooting plan.</p></div>';
+    }
+
+    workspace.innerHTML =
+      '<div class="hrs-work-head">' +
+        '<div><div class="hrs-kicker">Ticket '+t.id+' of '+TICKETS.length+' • '+esc(t.tag)+'</div><h2>'+esc(t.title)+'</h2></div>' +
+        '<div class="hrs-actions"><button type="button" class="hrs-btn hrs-btn-primary" data-action="dashboard">← Ticket Queue</button><button type="button" class="hrs-btn hrs-btn-danger" data-action="reset-ticket">Reset Ticket</button></div>' +
+      '</div>' +
+      '<div class="hrs-problem"><strong>Customer report</strong><p style="margin:5px 0 0">'+esc(t.problem)+'</p></div>' +
+      '<div class="hrs-work-grid">' +
+        '<div>' +
+          '<div class="hrs-card hrs-section">' +
+            '<div class="hrs-section-title"><h3 style="margin:0"><span class="hrs-step">1</span>What would you ask the customer?</h3></div>' +
+            '<div class="hrs-question-list">'+questionHtml+'</div>' +
+            '<div class="hrs-actions" style="margin-top:9px"><button type="button" class="hrs-btn hrs-btn-primary" data-action="check-question">Use This Question</button></div>' +
+            '<div id="hrsQuestionFeedback" class="hrs-feedback '+(st.questionChecked?'show':'')+'"></div>' +
+          '</div>' +
+          '<div class="hrs-card hrs-section">' +
+            '<div class="hrs-section-title"><h3 style="margin:0"><span class="hrs-step">2</span>Investigate the system</h3><span class="hrs-pill">'+st.inspected.length+' inspected</span></div>' +
+            '<div class="hrs-inspection-grid">'+inspectionHtml+'</div>' +
+          '</div>' +
+        '</div>' +
+        '<div>' +
+          '<div class="hrs-card hrs-section">' +
+            '<div class="hrs-section-title"><h3 style="margin:0">Inspection Findings</h3></div>' +
+            '<div id="hrsInspectionOutput" class="hrs-inspection-output">'+inspectOutput+'</div>' +
+            '<div class="hrs-actions" style="margin-top:9px"><button type="button" class="hrs-btn hrs-btn-primary" data-action="hint" '+(st.hintsUsed>=t.hints.length?'disabled':'')+'>Hint ('+st.hintsUsed+'/'+t.hints.length+')</button></div>' +
+            '<div id="hrsHints" class="hrs-hints">'+hints+'</div>' +
+          '</div>' +
+          '<div class="hrs-card hrs-section">' +
+            '<h3><span class="hrs-step">3</span>Build Your Troubleshooting Plan</h3>' +
+            '<div class="hrs-form-row"><label class="hrs-label" for="hrsPriority">Which action should be your first troubleshooting priority?</label><select id="hrsPriority">'+optionHtml(t.priorityOptions, st.lastPriority, "Choose a first priority…")+'</select></div>' +
+            '<div class="hrs-form-row"><label class="hrs-label" for="hrsEvidence">Which evidence best supports your diagnosis?</label><select id="hrsEvidence">'+optionHtml(t.evidenceOptions, st.lastEvidence, "Choose the strongest evidence…")+'</select></div>' +
+            '<div class="hrs-form-row"><label class="hrs-label" for="hrsCause">Most Likely Cause</label><select id="hrsCause">'+optionHtml(t.causeOptions, st.lastCause, "Choose a diagnosis…")+'</select></div>' +
+            '<div class="hrs-form-row"><label class="hrs-label" for="hrsRepair">Recommended Repair</label><select id="hrsRepair">'+optionHtml(t.repairOptions, st.lastRepair, "Choose a repair…")+'</select></div>' +
+            '<div class="hrs-actions"><button type="button" class="hrs-btn hrs-btn-success" data-action="perform-repair" '+(st.repaired?'disabled':'')+'>Perform Repair</button></div>' +
+            '<div class="hrs-score-note">Your first complete troubleshooting plan is the scored attempt. If it is not correct, you can keep investigating and revise it.</div>' +
+            '<div id="hrsPlanFeedback" class="hrs-feedback"></div>' +
+            repairStatus +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div id="hrsReflection" class="hrs-reflection '+(st.verified?'show':'')+'">' +
+        '<h3><span class="hrs-step">4</span>Think Like a Technician</h3>' +
+        '<div class="hrs-tech-note">Reflection is not graded. Use it to document your reasoning before closing the ticket.</div>' +
+        '<div class="hrs-form-row"><label class="hrs-label" for="hrsReflectWhy">Why did you choose this repair?</label><textarea id="hrsReflectWhy" placeholder="Explain which evidence influenced your decision…">'+esc(st.reflectionWhy)+'</textarea></div>' +
+        '<div class="hrs-form-row"><label class="hrs-label" for="hrsReflectMore">What additional information would you want from the customer before performing this repair?</label><textarea id="hrsReflectMore" placeholder="Example: timing, recent changes, when the symptom occurs…">'+esc(st.reflectionMore)+'</textarea></div>' +
+        '<div class="hrs-actions"><button type="button" class="hrs-btn hrs-btn-success" data-action="complete-ticket" '+(st.complete?'disabled':'')+'>'+(st.complete?'Ticket Closed':'Close Ticket')+'</button></div>' +
+        '<div id="hrsReflectionFeedback" class="hrs-feedback"></div>' +
+      '</div>';
+
+    if (st.questionChecked) updateQuestionFeedback(t);
+  }
+
+  function verificationHtml(t) {
+    return '<div><strong>✓ Verification passed</strong><ul class="hrs-checklist">'+t.verification.map(function(v){
+      return '<li><span class="hrs-check">✓</span><span>'+esc(v)+'</span></li>';
+    }).join("")+'</ul></div>';
+  }
+
+  function updateQuestionFeedback(t) {
+    var st = state.tickets[t.id];
+    var box = root.querySelector("#hrsQuestionFeedback");
+    if (!box) return;
+    var q = t.customerQuestions.find(function(x){return x.id===st.questionSelected;});
+    if (!q) {
+      box.className = "hrs-feedback show warn";
+      box.textContent = "Select a customer question first.";
+      return;
+    }
+    if (q.best) {
+      box.className = "hrs-feedback show good";
+      box.textContent = "Useful question. It helps connect the symptom to timing, workload, or a recent hardware change.";
+    } else {
+      box.className = "hrs-feedback show warn";
+      box.textContent = "That question is unlikely to help isolate this hardware problem. Choose a question tied to the symptom, timing, or recent changes.";
+    }
+  }
+
+  function inspectPart(t, inspectionId) {
+    var st = state.tickets[t.id];
+    if (st.inspected.indexOf(inspectionId) < 0) st.inspected.push(inspectionId);
+    var item = t.inspections.find(function(i){return i.id===inspectionId;});
+    var output = root.querySelector("#hrsInspectionOutput");
+    if (output && item) {
+      output.innerHTML = '<div class="tone-'+esc(item.tone)+'">'+esc(item.label)+'</div><p style="margin-top:6px">'+esc(item.detail)+'</p>';
+    }
+    var btn = root.querySelector('[data-inspect="'+CSS.escape(inspectionId)+'"]');
+    if (btn) {
+      btn.classList.add("seen");
+      var muted = btn.querySelector(".hrs-muted");
+      if (muted) muted.textContent = "Inspected — click to review";
+    }
+    var pill = workspace.querySelector(".hrs-section:nth-of-type(2) .hrs-pill");
+    if (pill) pill.textContent = st.inspected.length + " inspected";
+    live.textContent = item ? item.label + " inspected." : "Inspection recorded.";
+  }
+
+  function useHint(t) {
+    var st = state.tickets[t.id];
+    if (st.hintsUsed >= t.hints.length) return;
+    st.hintsUsed++;
+    var hintsBox = root.querySelector("#hrsHints");
+    if (hintsBox) {
+      var div = document.createElement("div");
+      div.className = "hrs-hint";
+      div.innerHTML = "<strong>Hint "+st.hintsUsed+":</strong> "+esc(t.hints[st.hintsUsed-1]);
+      hintsBox.appendChild(div);
+    }
+    var btn = root.querySelector('[data-action="hint"]');
+    if (btn) {
+      btn.textContent = "Hint ("+st.hintsUsed+"/"+t.hints.length+")";
+      if (st.hintsUsed >= t.hints.length) btn.disabled = true;
+    }
+  }
+
+  function getPlanSelections() {
+    return {
+      priority: root.querySelector("#hrsPriority") ? root.querySelector("#hrsPriority").value : "",
+      evidence: root.querySelector("#hrsEvidence") ? root.querySelector("#hrsEvidence").value : "",
+      cause: root.querySelector("#hrsCause") ? root.querySelector("#hrsCause").value : "",
+      repair: root.querySelector("#hrsRepair") ? root.querySelector("#hrsRepair").value : ""
+    };
+  }
+
+  function performRepair(t) {
+    var st = state.tickets[t.id];
+    var box = root.querySelector("#hrsPlanFeedback");
+    var sel = getPlanSelections();
+    st.lastPriority = sel.priority; st.lastEvidence = sel.evidence; st.lastCause = sel.cause; st.lastRepair = sel.repair;
+
+    if (st.inspected.length < t.minInspections) {
+      box.className = "hrs-feedback show warn";
+      box.textContent = "Investigate at least "+t.minInspections+" system areas before performing a repair.";
+      return;
+    }
+    if (!sel.priority || !sel.evidence || !sel.cause || !sel.repair) {
+      box.className = "hrs-feedback show warn";
+      box.textContent = "Complete all four troubleshooting decisions before performing the repair.";
+      return;
+    }
+
+    st.attempts++;
+    if (!st.firstPlanSubmitted) {
+      st.firstPlanSubmitted = true;
+      st.categoryPoints.troubleshooting = sel.priority === t.correctPriority ? 1 : 0;
+      st.categoryPoints.critical = sel.evidence === t.correctEvidence ? 1 : 0;
+      st.categoryPoints.diagnosis = sel.cause === t.correctCause ? 1 : 0;
+      st.categoryPoints.repair = sel.repair === t.correctRepair ? 1 : 0;
+      updateDashboard();
+    }
+
+    var correct = sel.priority===t.correctPriority && sel.evidence===t.correctEvidence && sel.cause===t.correctCause && sel.repair===t.correctRepair;
+    if (!correct) {
+      box.className = "hrs-feedback show warn";
+      box.innerHTML = "<strong>Repair not approved yet.</strong> The selected plan does not fully address the evidence found during your inspection. Review the system information, then revise the priority, evidence, diagnosis, or repair.";
+      live.textContent = "Repair plan needs revision.";
+      return;
+    }
+
+    st.repaired = true;
+    box.className = "hrs-feedback show good";
+    box.textContent = "Troubleshooting plan accepted. The selected repair addresses the evidence.";
+    renderWorkspace(t);
+    var feedback = root.querySelector("#hrsPlanFeedback");
+    if (feedback) {
+      feedback.className = "hrs-feedback show good";
+      feedback.textContent = "Troubleshooting plan accepted. The selected repair addresses the evidence.";
+    }
+    live.textContent = "Repair completed. Run verification tests.";
+  }
+
+  function verify(t) {
+    var st = state.tickets[t.id];
+    if (!st.repaired) return;
+    st.verified = true;
+    renderWorkspace(t);
+    live.textContent = "Verification tests passed. Complete the technician reflection to close the ticket.";
+  }
+
+  function completeTicket(t) {
+    var st = state.tickets[t.id];
+    var why = root.querySelector("#hrsReflectWhy");
+    var more = root.querySelector("#hrsReflectMore");
+    var box = root.querySelector("#hrsReflectionFeedback");
+    st.reflectionWhy = why ? why.value.trim() : "";
+    st.reflectionMore = more ? more.value.trim() : "";
+    if (st.reflectionWhy.length < 8 || st.reflectionMore.length < 8) {
+      box.className = "hrs-feedback show warn";
+      box.textContent = "Add a brief response to both reflection prompts before closing the ticket. Reflection is not scored.";
+      return;
+    }
+    st.complete = true;
+    updateDashboard();
+    if (completedCount() === TICKETS.length) {
+      renderResults();
+      showView(results);
+      live.textContent = "All tickets complete. Technician Performance Report is ready.";
+    } else {
+      renderWorkspace(t);
+      var refBox = root.querySelector("#hrsReflectionFeedback");
+      if (refBox) {
+        refBox.className = "hrs-feedback show good";
+        refBox.textContent = "Ticket closed successfully. Return to the queue for your next ticket.";
+      }
+    }
+  }
+
+  function categoryTotal(key) {
+    return Object.keys(state.tickets).reduce(function(sum,id){ return sum + state.tickets[id].categoryPoints[key]; },0);
+  }
+
+  function renderResults() {
+    var max = TICKETS.length * 4;
+    var score = totalPoints();
+    var pct = Math.round((score / max) * 100);
+    var cats = {
+      diagnosis:categoryTotal("diagnosis"),
+      repair:categoryTotal("repair"),
+      troubleshooting:categoryTotal("troubleshooting"),
+      critical:categoryTotal("critical")
+    };
+    var improvement = [];
+    if (cats.diagnosis < TICKETS.length) improvement.push("Hardware diagnosis");
+    if (cats.troubleshooting < TICKETS.length) improvement.push("Troubleshooting sequence");
+    if (cats.repair < TICKETS.length) improvement.push("Repair selection");
+    if (cats.critical < TICKETS.length) improvement.push("Evidence-based reasoning");
+    var hints = Object.keys(state.tickets).reduce(function(sum,id){return sum + state.tickets[id].hintsUsed;},0);
+
+    var review = TICKETS.map(function(t){
+      return '<details><summary>Ticket '+t.id+' — '+esc(t.title)+'</summary><div class="hrs-review-body">' +
+        '<div class="hrs-review-row"><b>Problem:</b> '+esc(t.problem)+'</div>' +
+        '<div class="hrs-review-row"><b>Correct Diagnosis:</b> '+esc(t.answer.diagnosis)+'</div>' +
+        '<div class="hrs-review-row"><b>Correct Repair:</b> '+esc(t.answer.repair)+'</div>' +
+        '<div class="hrs-review-row"><b>Why:</b> '+esc(t.answer.why)+'</div>' +
+        '<div class="hrs-review-row"><b>What Evidence Should Have Led You There:</b> '+esc(t.answer.evidence)+'</div>' +
+      '</div></details>';
+    }).join("");
+
+    results.innerHTML =
+      '<div class="hrs-final-banner"><div class="hrs-kicker">All Tickets Closed</div><h2>Technician Performance Report</h2><p>You completed the Chapter 1 repair-shop capstone. Review where your first troubleshooting decisions were strongest and where you should slow down and gather more evidence.</p></div>' +
+      '<div class="hrs-card">' +
+        '<div class="hrs-report-grid">' +
+          '<div class="hrs-report-stat"><span class="hrs-muted">Tickets completed</span><b>'+TICKETS.length+' / '+TICKETS.length+'</b></div>' +
+          '<div class="hrs-report-stat"><span class="hrs-muted">Technical score</span><b>'+score+' / '+max+' ('+pct+'%)</b></div>' +
+          '<div class="hrs-report-stat"><span class="hrs-muted">Hints used</span><b>'+hints+'</b></div>' +
+          '<div class="hrs-report-stat"><span class="hrs-muted">Repairs verified</span><b>'+TICKETS.length+' / '+TICKETS.length+'</b></div>' +
+        '</div>' +
+        '<h3>Performance by Skill</h3>' +
+        '<div class="hrs-report-grid">' +
+          '<div class="hrs-report-stat"><span class="hrs-muted">Hardware Diagnosis</span><b>'+cats.diagnosis+' / '+TICKETS.length+'</b></div>' +
+          '<div class="hrs-report-stat"><span class="hrs-muted">Troubleshooting</span><b>'+cats.troubleshooting+' / '+TICKETS.length+'</b></div>' +
+          '<div class="hrs-report-stat"><span class="hrs-muted">Repair Selection</span><b>'+cats.repair+' / '+TICKETS.length+'</b></div>' +
+          '<div class="hrs-report-stat"><span class="hrs-muted">Critical Thinking</span><b>'+cats.critical+' / '+TICKETS.length+'</b></div>' +
+        '</div>' +
+        '<h3>Areas That Need Improvement</h3>' +
+        '<p>'+(improvement.length ? esc(improvement.join(", "))+" — review the answer explanations below and compare them with the evidence you inspected." : "Strong first-attempt performance across all four technical categories.")+'</p>' +
+        '<h3>What You Demonstrated</h3>' +
+        '<div class="hrs-skill-list">' +
+          ['Hardware troubleshooting','Power and thermal diagnosis','GPU/display troubleshooting','RAM troubleshooting','Storage troubleshooting','Component compatibility','Systematic problem solving'].map(function(s){return '<span class="hrs-skill">'+esc(s)+'</span>';}).join("") +
+        '</div>' +
+      '</div>' +
+      '<div class="hrs-card" style="margin-top:15px"><div class="hrs-section-title"><h2 style="margin:0">Answer Review</h2><button class="hrs-btn hrs-btn-primary" type="button" data-action="dashboard">Ticket Queue</button></div><p class="hrs-muted">Use these explanations to compare the evidence with the final diagnosis and repair.</p><div class="hrs-review">'+review+'</div></div>';
+  }
+
+  function resetTicket(t) {
+    state.tickets[t.id] = {
+      complete:false, inspected:[], hintsUsed:0, questionSelected:null, questionChecked:false,
+      firstPlanSubmitted:false, categoryPoints:{diagnosis:0, repair:0, troubleshooting:0, critical:0},
+      attempts:0, repaired:false, verified:false, reflectionWhy:"", reflectionMore:""
+    };
+    updateDashboard();
+    renderWorkspace(t);
+  }
+
+  function resetAll() {
+    if (!window.confirm("Reset all tickets, scores, hints, and reflections?")) return;
+    TICKETS.forEach(function(t){
+      state.tickets[t.id] = {
+        complete:false, inspected:[], hintsUsed:0, questionSelected:null, questionChecked:false,
+        firstPlanSubmitted:false, categoryPoints:{diagnosis:0, repair:0, troubleshooting:0, critical:0},
+        attempts:0, repaired:false, verified:false, reflectionWhy:"", reflectionMore:""
+      };
+    });
+    state.activeId = null;
+    updateDashboard();
+    showView(dashboard);
+  }
+
+  root.addEventListener("change", function(e){
+    if (e.target && e.target.name === "hrsCustomerQ" && state.activeId) {
+      state.tickets[state.activeId].questionSelected = e.target.value;
+      state.tickets[state.activeId].questionChecked = false;
+      var fb = root.querySelector("#hrsQuestionFeedback");
+      if (fb) fb.className = "hrs-feedback";
+    }
+  });
+
+  root.addEventListener("click", function(e){
+    var open = e.target.closest("[data-open-ticket]");
+    if (open) { openTicket(open.getAttribute("data-open-ticket")); return; }
+
+    var inspect = e.target.closest("[data-inspect]");
+    if (inspect && state.activeId) { inspectPart(ticketById(state.activeId), inspect.getAttribute("data-inspect")); return; }
+
+    var act = e.target.closest("[data-action]");
+    if (!act) return;
+    var action = act.getAttribute("data-action");
+    var t = state.activeId ? ticketById(state.activeId) : null;
+
+    if (action === "dashboard") { updateDashboard(); showView(dashboard); return; }
+    if (action === "reset-all") { resetAll(); return; }
+    if (!t) return;
+
+    if (action === "check-question") {
+      var st = state.tickets[t.id];
+      var checked = root.querySelector('input[name="hrsCustomerQ"]:checked');
+      st.questionSelected = checked ? checked.value : null;
+      st.questionChecked = true;
+      updateQuestionFeedback(t);
+    } else if (action === "hint") {
+      useHint(t);
+    } else if (action === "perform-repair") {
+      performRepair(t);
+    } else if (action === "verify") {
+      verify(t);
+    } else if (action === "complete-ticket") {
+      completeTicket(t);
+    } else if (action === "reset-ticket") {
+      if (window.confirm("Reset this ticket and its score?")) resetTicket(t);
+    }
+  });
+
+  updateDashboard();
+})();
+</script>
+</body>
+</html>
